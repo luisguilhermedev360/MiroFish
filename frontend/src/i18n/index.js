@@ -14,7 +14,10 @@ for (const path in localeFiles) {
   }
 }
 
-const savedLocale = localStorage.getItem('locale') || 'zh'
+// Fork (2026-10-28): default UI locale can be set at build time with VITE_DEFAULT_LOCALE
+const defaultLocale = (import.meta.env.VITE_DEFAULT_LOCALE && messages[import.meta.env.VITE_DEFAULT_LOCALE])
+  ? import.meta.env.VITE_DEFAULT_LOCALE : 'zh'
+const savedLocale = localStorage.getItem('locale') || defaultLocale
 
 const i18n = createI18n({
   legacy: false,
