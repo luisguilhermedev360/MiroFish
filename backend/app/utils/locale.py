@@ -1,3 +1,7 @@
+# Modified in the luisguilhermedev360/MiroFish fork on 2026-10-28 (AGPL-3.0 §5):
+# the fallback locale is read from MIROFISH_DEFAULT_LOCALE instead of being
+# hard-coded to "zh", so API calls without an Accept-Language header and
+# background threads use the deployment's language.
 import json
 import os
 import threading
@@ -25,16 +29,23 @@ def set_locale(locale: str):
     _thread_local.locale = locale
 
 
+def get_default_locale() -> str:
+    """Locale used when no Accept-Language header or thread locale is set."""
+    configured = os.environ.get('MIROFISH_DEFAULT_LOCALE', 'zh').strip()
+    return configured if configured in _translations else 'zh'
+
+
 def get_locale() -> str:
+    default = get_default_locale()
     if has_request_context():
-        raw = request.headers.get('Accept-Language', 'zh')
-        return raw if raw in _translations else 'zh'
-    return getattr(_thread_local, 'locale', 'zh')
+        raw = request.headers.get('Accept-Language', default)
+        return raw if raw in _translations else default
+    return getattr(_thread_local, 'locale', default)
 
 
 def t(key: str, **kwargs) -> str:
     locale = get_locale()
-    messages = _translations.get(locale, _translations.get('zh', {}))
+    messages = _translations.get(locale, _translations.get(get_default_locale(), {}))
 
     value = messages
     for part in key.split('.'):
@@ -65,5 +76,5 @@ def t(key: str, **kwargs) -> str:
 
 def get_language_instruction() -> str:
     locale = get_locale()
-    lang_config = _languages.get(locale, _languages.get('zh', {}))
+    lang_config = _languages.get(locale, _languages.get(get_default_locale(), {}))
     return lang_config.get('llmInstruction', '请使用中文回答。')

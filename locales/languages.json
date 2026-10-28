@@ -16,8 +16,8 @@
     "llmInstruction": "Veuillez répondre en français."
   },
   "pt": {
-    "label": "Português",
-    "llmInstruction": "Por favor, responda em português."
+    "label": "Português (Brasil)",
+    "llmInstruction": "Responda sempre em português do Brasil. Todo texto livre que você gerar — resumos, descrições, biografias, personas, posts, comentários, títulos, seções e relatórios — deve estar em português do Brasil, inclusive quando o material de entrada estiver em outro idioma. Ao descrever uma persona, deixe explícito que ela escreve nas redes sociais em português do Brasil. Nomes de campos JSON, nomes de tipos e valores de enumeração permanecem em inglês quando assim exigido."
   },
   "ru": {
     "label": "Русский",
