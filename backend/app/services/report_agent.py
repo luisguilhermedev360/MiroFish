@@ -22,6 +22,12 @@ from ..config import Config
 from ..utils.llm_client import LLMClient
 from ..utils.logger import get_logger
 from ..utils.locale import get_language_instruction, t
+
+
+def _with_language(content: str) -> str:
+    """Fork (2026-10-28): re-state the output language on every message the tool loop
+    injects, so Chinese scaffolding text does not pull the model out of the locale."""
+    return f"{content}\n\n{get_language_instruction()}"
 from .zep_tools import (
     ZepToolsService, 
     SearchResult, 
@@ -1353,7 +1359,7 @@ class ReportAgent:
                 # 如果还有迭代次数，添加消息并重试
                 if iteration < max_iterations - 1:
                     messages.append({"role": "assistant", "content": "（响应为空）"})
-                    messages.append({"role": "user", "content": "请继续生成内容。"})
+                    messages.append({"role": "user", "content": _with_language("请继续生成内容。")})
                     continue
                 # 最后一次迭代也返回 None，跳出循环进入强制收尾
                 break
@@ -1378,7 +1384,7 @@ class ReportAgent:
                     messages.append({"role": "assistant", "content": cleaned_response})
                     messages.append({
                         "role": "user",
-                        "content": (
+                        "content": _with_language(
                             "【格式错误】你在一次回复中同时包含了工具调用和 Final Answer，这是不允许的。\n"
                             "每次回复只能做以下两件事之一：\n"
                             "- 调用一个工具（输出一个 <tool_call> 块，不要写 Final Answer）\n"
@@ -1421,11 +1427,11 @@ class ReportAgent:
                     unused_hint = f"（这些工具还未使用，推荐用一下他们: {', '.join(unused_tools)}）" if unused_tools else ""
                     messages.append({
                         "role": "user",
-                        "content": REACT_INSUFFICIENT_TOOLS_MSG.format(
+                        "content": _with_language(REACT_INSUFFICIENT_TOOLS_MSG.format(
                             tool_calls_count=tool_calls_count,
                             min_tool_calls=min_tool_calls,
                             unused_hint=unused_hint,
-                        ),
+                        )),
                     })
                     continue
 
@@ -1450,10 +1456,10 @@ class ReportAgent:
                     messages.append({"role": "assistant", "content": cleaned_response})
                     messages.append({
                         "role": "user",
-                        "content": REACT_TOOL_LIMIT_MSG.format(
+                        "content": _with_language(REACT_TOOL_LIMIT_MSG.format(
                             tool_calls_count=tool_calls_count,
                             max_tool_calls=self.MAX_TOOL_CALLS_PER_SECTION,
-                        ),
+                        )),
                     })
                     continue
 
@@ -1499,14 +1505,14 @@ class ReportAgent:
                 messages.append({"role": "assistant", "content": cleaned_response})
                 messages.append({
                     "role": "user",
-                    "content": REACT_OBSERVATION_TEMPLATE.format(
+                    "content": _with_language(REACT_OBSERVATION_TEMPLATE.format(
                         tool_name=call["name"],
                         result=result,
                         tool_calls_count=tool_calls_count,
                         max_tool_calls=self.MAX_TOOL_CALLS_PER_SECTION,
                         used_tools_str=", ".join(used_tools),
                         unused_hint=unused_hint,
-                    ),
+                    )),
                 })
                 continue
 
@@ -1521,11 +1527,11 @@ class ReportAgent:
 
                 messages.append({
                     "role": "user",
-                    "content": REACT_INSUFFICIENT_TOOLS_MSG_ALT.format(
+                    "content": _with_language(REACT_INSUFFICIENT_TOOLS_MSG_ALT.format(
                         tool_calls_count=tool_calls_count,
                         min_tool_calls=min_tool_calls,
                         unused_hint=unused_hint,
-                    ),
+                    )),
                 })
                 continue
 
@@ -1545,7 +1551,7 @@ class ReportAgent:
         
         # 达到最大迭代次数，强制生成内容
         logger.warning(t('report.sectionMaxIter', title=section.title))
-        messages.append({"role": "user", "content": REACT_FORCE_FINAL_MSG})
+        messages.append({"role": "user", "content": _with_language(REACT_FORCE_FINAL_MSG)})
         
         response = self.llm.chat(
             messages=messages,
@@ -1907,7 +1913,7 @@ class ReportAgent:
             observation = "\n".join([f"[{r['tool']}结果]\n{r['result']}" for r in tool_results])
             messages.append({
                 "role": "user",
-                "content": observation + CHAT_OBSERVATION_SUFFIX
+                "content": _with_language(observation + CHAT_OBSERVATION_SUFFIX)
             })
         
         # 达到最大迭代，获取最终响应

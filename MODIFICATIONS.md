@@ -16,6 +16,7 @@ outside this repository and talks to it only through its HTTP API.
 | 2026-10-28 | `.env.example` | Documents `MIROFISH_DEFAULT_LOCALE`. |
 | 2026-10-28 | `frontend/index.html` | Page `lang` set to `pt-BR` and tab title translated (they are hard-coded, outside the i18n system). |
 | 2026-10-28 | `frontend/src/i18n/index.js` | Initial UI locale configurable with `VITE_DEFAULT_LOCALE` (default unchanged: `zh`). |
+| 2026-10-28 | `backend/app/services/report_agent.py` | The language instruction is re-stated on every message the ReAct tool loops inject (observations, "call more tools", "force final answer"), so the Chinese scaffolding no longer pulls sections into Chinese. |
 | 2026-10-28 | `MODIFICATIONS.md` | This notice. |
 
 Upstream remains the canonical project; this fork is published so that anyone who
